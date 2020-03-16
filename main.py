@@ -34,6 +34,7 @@ x_a, y_a = new_coords[start_index-1]
 x_b, y_b = new_coords[start_index+1]
 x_c, y_c = new_coords[stop_index-1]
 x_d, y_d = new_coords[stop_index+1]
+# print(new_coords)
 
 k2 = (x_b*y0 - x0*y_b)/(x_b-x0)
 a2 = (y_b - y0)/(x_b - x0)
@@ -54,24 +55,22 @@ a_1 = -(((-a2*a3*(k5+24)+24*a2*a5 + a3*a5*k2)**2 - 48*a2*a3*(a2-a5)*(a3*(a5*x1+k
                                                                      a5*(k3+y1+12))) - a2*a3*k5 - 24*a2*a3 + 24*a2*a5 + a3*a5*k2)**0.5/(2*a3*(a2-a5))
 
 a_2 = -(((-a2*a3*(k5+24)+24*a2*a5 + a3*a5*k2)**2 - 48*a2*a3*(a2-a5)*(a3*(a5*x1+k5+12) -
-                                                                     a5*(k3+y1+12))) + a2*a3*k5 + 24*a2*a3 - 24*a2*a5 - a3*a5*k2)**0.5/(2*a3*(a2-a5))
 # print(a_1, a_2)☺
+                                                                     a5*(k3+y1+12))) + a2*a3*k5 + 24*a2*a3 - 24*a2*a5 - a3*a5*k2)**0.5/(2*a3*(a2-a5))
 
 fig, ax = plt.subplots(2)
-polygon = Polygon(coords)
+polygon = Polygon(new_polygon)
 p = PatchCollection([polygon], fc="none", ec="purple")
 ax[0].add_collection(p)
 x, y = zip(*new_polygon)
-ax[1].set_xlim(min(x)-10,max(x)+10)
-ax[1].set_ylim(min(y)-10,max(y)+10)
+ax[0].axis("equal")
 ax[0].plot(*zip(*split_line), "--")
 ax[0].scatter(x, y, c="blue")
 polygon = Polygon(new_coords)
 p = PatchCollection([polygon], fc="none", ec="purple")
 ax[1].add_collection(p)
 x, y = zip(*new_coords)
-ax[1].set_xlim(min(x)-10,max(x)+10)
-ax[1].set_ylim(min(y)-10,max(y)+10)
+ax[1].axis("equal")
 split_line = [new_coords[start_index], new_coords[stop_index]]
 ax[1].plot(*zip(*split_line), "--")
 ax[1].scatter(x, y, c="blue")
