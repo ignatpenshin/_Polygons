@@ -47,10 +47,10 @@ h2 = (-((-2*x_1*y_a*y_b*y_c+2*x_1*y_a*y_b*y_d-24*x_a*y_b*y_c+24*x_a*y_b*y_d+2*x_
 
 x_2 = h*x_b/y_b
 x_3 = (h-y_d)*(x_c-x_d)/(y_c-y_d)+x_d
-x_5 = (h-ROAD_WIDTH)*x_a/y_a
 x_4 = (h-ROAD_WIDTH-y_d)*(x_c-x_d)/(y_c-y_d)+x_d
+x_5 = (h-ROAD_WIDTH)*x_a/y_a
+
 mid_top = (x_3+x_2)/2
-mid_bottom = (x_5+x_4)/2
 top_polygon = [[mid_top, h], [x_2, h], *
                transformed_coords[start_index+1:stop_index], [x_3, h]]
 new_polygon_top, split_line_top = split_polygon(top_polygon)
@@ -58,11 +58,8 @@ new_polygon_top_1 = new_polygon_top[:new_polygon_top.index(
     split_line_top[1])+1]
 new_polygon_top_2 = [*new_polygon_top[new_polygon_top.index(
     split_line_top[1]):], new_polygon_top[0]]
-# transformed_coords_top = transform_coordinates(
-#     transformed_coords, start, stop)
 
-# print(transformed_coords_top)
-
+mid_bottom = (x_5+x_4)/2
 bottom_polygon = [[mid_bottom, h-ROAD_WIDTH], [x_4, h-ROAD_WIDTH], *
                   transformed_coords[stop_index+1:], [x_5, h-ROAD_WIDTH]]
 new_polygon_bottom, split_line_bottom = split_polygon(bottom_polygon)
@@ -72,6 +69,12 @@ new_polygon_bottom_2 = [*new_polygon_bottom[new_polygon_bottom.index(
     split_line_bottom[1]):], new_polygon_bottom[0]]
 # print(area_by_shoelace(new_polygon_top_1), area_by_shoelace(new_polygon_top_2),
 #       area_by_shoelace(new_polygon_bottom_1), area_by_shoelace(new_polygon_bottom_2))
+
+x_6 = split_line_top[1]
+x_7 = split_line_bottom[1]
+
+cut_points = [top_polygon[0], bottom_polygon[0],
+              split_line_bottom[1], split_line_top[1], [x_2, h], [x_3, h], [x_4, h-ROAD_WIDTH], [x_5, h-ROAD_WIDTH]]
 
 fig, ax = plt.subplots(2)
 polygon = Polygon(new_polygon)
@@ -111,4 +114,6 @@ ax[1].add_collection(p)
 polygon = Polygon(new_polygon_bottom_2)
 p = PatchCollection([polygon], fc="none", ec="magenta")
 ax[1].add_collection(p)
+x, y = zip(*cut_points)
+ax[1].scatter(x, y, c="orange")
 plt.show()
