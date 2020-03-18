@@ -1,11 +1,11 @@
 import pandas as pd
-from matplotlib.patches import Polygon
+import numpy as np
 
 
 def area_by_shoelace(coords):
-    polygon = Polygon(coords)
-    x, y = zip(*polygon.get_xy())
-    return abs(sum(i * j for i, j in zip(x, y[1:])) - sum(i * j for i, j in zip(x[1:], y)))*0.5
+    x, y = zip(*coords)
+    return 0.5 * np.abs(np.dot(x[:-1], y[1:]) + x[-1]*y[0] -
+                        np.dot(y[:-1], x[1:]) - y[-1]*x[0])
 
 
 def dist(point1, point2):
@@ -50,6 +50,7 @@ def split_polygon(coords):
     coords.insert(index+1, splitting_point)
     return [coords, split_line]
 
+
 def square_xy(file):
     z = float(0)
     mn1 = float(0)
@@ -73,6 +74,7 @@ def square_xy(file):
             z = float((mn1 - mn2)/2)
             return z
 
+
 def transform_coordinates(coords, start, stop):
     x0, y0 = start
     x1, y1 = stop
@@ -80,7 +82,8 @@ def transform_coordinates(coords, start, stop):
     sinA = (y1 - y0)/basis
     cosA = (x1 - x0)/basis
     return [[(x - x0)*cosA + (y - y0)*sinA, -
-               (x - x0)*sinA + (y - y0)*cosA] for x,y in coords]
+             (x - x0)*sinA + (y - y0)*cosA] for x, y in coords]
+
 
 def smooth_polygon(file, status, output_dir):
     # new basis
