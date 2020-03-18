@@ -25,8 +25,12 @@ def read_polygon_data(filename):
     return file.astype({"X": float, "Y": float})
 
 
-def get_polygon_coords(dataframe):
-    return dataframe[["Y", "X"]].values.tolist()
+def get_polygon_coords(dataframe, inverse=False):
+    columns = ["X", "Y"]
+    if inverse:
+        columns.reverse()
+    coords = dataframe[columns].values.tolist()
+    return coords
 
 
 def split_polygon(coords):
@@ -76,24 +80,33 @@ def square_xy(file):
 
 
 def transform_coordinates(coords, start, stop):
-    x0, y0 = start
-    x1, y1 = stop
     basis = dist(start, stop)
-    sinA = (y1 - y0)/basis
-    cosA = (x1 - x0)/basis
-    return [[(x - x0)*cosA + (y - y0)*sinA, -
-             (x - x0)*sinA + (y - y0)*cosA] for x, y in coords]
+    cos, sin = np.divide(np.subtract(stop, start), basis)
+    matrix = [[cos, sin], [-sin, cos]]
+    transformed = map(lambda point: np.matmul(
+        matrix, np.subtract(point, start)).tolist(), coords)
+    return list(transformed)
+
+
+# def transform_coordinates(coords, start, stop):
+#     x0, y0 = start
+#     x1, y1 = stop
+#     basis = dist(start, stop)
+#     sinA = (y1 - y0)/basis
+#     cosA = (x1 - x0)/basis
+#     return [[(x - x0)*cosA + (y - y0)*sinA, -
+#              (x - x0)*sinA + (y - y0)*cosA] for x, y in coords]
 
 
 def smooth_polygon(file, status, output_dir):
-    # new basis
-    xn = float(file[file['STATUS'] == 'start'].iloc[0, 1])
-    yn = float(file[file['STATUS'] == 'start'].iloc[0, 2])
-    xn_j = float(file[file['STATUS'] == 'stop'].iloc[0, 1])
-    yn_j = float(file[file['STATUS'] == 'stop'].iloc[0, 2])
-
+    start_row = file[file.STATUS.eq("start")]
+    stop_row = file[file.STATUS.eq("stop")]
+    start = start_row[["X", "Y"]].values[0]
+    stop = stop_row[["X", "Y"]].values[0]
+    xn, yn = start
+    xn_j, yn_j = stop
     # data for new square
-    n_s = file[file['STATUS'] != '+']
+    n_s = file[file.STATUS.ne('+')]
 
     # main square
     d_s = square_xy(file) - square_xy(n_s)  # difference of squares
@@ -117,7 +130,11 @@ def smooth_polygon(file, status, output_dir):
         y_l_new = -(y_l - yn)*sinA + (x_l - xn)*cosA
         dict_x.append(x_l_new)
         dict_y.append(y_l_new)
-
+    print(dict_x, dict_y)
+    # coords = get_polygon_coords(file.dropna)
+    # transformed_coords = transform_coordinates(coords, start, stop)
+    # dict_x, dict_y = zip(*transformed_coords)
+    # print(dict_x, dict_y)
     # Вхождение высоты в конкретный интервал
     dict_ins = []
     for k in range(len_part - 1):
@@ -131,10 +148,8 @@ def smooth_polygon(file, status, output_dir):
             dict_ins.append(s)
 
     # Функция для определения пересечения высоты
-    row_2 = file[file['STATUS'] == 'stop']
     row_3 = file[file['STATUS'].isnull()]  # !!!!!
     for i in range(len(dict_ins)):
-        row_1 = file[file['STATUS'] == 'start']
         x_k = dict_x[dict_ins[i][0]]
         y_k = dict_y[dict_ins[i][0]]
         x_k_1 = dict_x[dict_ins[i][1]]
@@ -142,10 +157,10 @@ def smooth_polygon(file, status, output_dir):
         X_H = (H - y_k)*(x_k_1 - x_k)/(y_k_1 - y_k) + x_k
         Y_H_main = X_H*cosA - H*sinA + yn
         X_H_main = X_H*sinA + H*cosA + xn
-        row_1.loc[1] = [status + i, X_H_main, Y_H_main, 'new']
-        row_1[['number', 'X', 'Y', 'STATUS']].to_csv(
+        start_row.loc[1] = [status + i, X_H_main, Y_H_main, 'new']
+        start_row[['number', 'X', 'Y', 'STATUS']].to_csv(
             output_dir + '/file_' + str(i) + '.csv', index=False, sep=';')
-        row_2.to_csv(output_dir + '/file_' + str(i) + '.csv',
-                     index=False, sep=';', header=None, mode='a')
+        stop_row.to_csv(output_dir + '/file_' + str(i) + '.csv',
+                        index=False, sep=';', header=None, mode='a')
         row_3.to_csv(output_dir + '/file_' + str(i) + '.csv',
                      index=False, sep=';', header=None, mode='a')

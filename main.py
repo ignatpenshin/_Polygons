@@ -20,7 +20,7 @@ final_polygon = path.join(new_output_dir, "file_0.csv")
 
 
 dataframe = read_polygon_data(final_polygon)
-coords = get_polygon_coords(dataframe)
+coords = get_polygon_coords(dataframe, inverse=True)
 new_polygon, split_line = split_polygon(coords)
 start, stop = split_line
 transformed_coords = transform_coordinates(new_polygon, start, stop)
