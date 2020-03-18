@@ -1,4 +1,4 @@
-import pandas as pd
+from pandas import read_csv
 import numpy as np
 
 
@@ -21,7 +21,7 @@ def find_splitting_point(triangle, area):
 
 
 def read_polygon_data(filename):
-    file = pd.read_csv(filename, sep=';', decimal=',')
+    file = read_csv(filename, sep=';', decimal=',')
     return file.astype({"X": float, "Y": float})
 
 
