@@ -91,3 +91,5 @@ ENV/
 
 # vscode 
 .vscode
+
+/variants
