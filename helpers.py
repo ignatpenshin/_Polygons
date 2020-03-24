@@ -1,6 +1,6 @@
-from pandas import read_csv
 from os import path
 import numpy as np
+import pandas as pd
 
 
 def area_by_shoelace(coords):
@@ -22,7 +22,7 @@ def find_splitting_point(triangle, area):
 
 
 def read_polygon_data(filename):
-    data = read_csv(filename, sep=';', decimal=',')
+    data = pd.read_csv(filename, sep=';', decimal=',')
     return data.astype({"x": float, "y": float})
 
 
@@ -122,7 +122,7 @@ def smooth_polygon(data, status, output_dir):
             dict_ins.append(s)
 
     # Функция для определения пересечения высоты
-    row_3 = data[data.status.isnull()]  # !!!!!
+    df = data[data.status.isnull()]  # !!!!!
     for i, point in enumerate(dict_ins):
         x_k = dict_x[point[0]]
         y_k = dict_y[point[0]]
@@ -132,9 +132,6 @@ def smooth_polygon(data, status, output_dir):
         y_H_main = x_H*cosA - H*sinA + yn
         x_H_main = x_H*sinA + H*cosA + xn
         start_row.loc[1] = [status + i, x_H_main, y_H_main, 'new']
-        start_row.to_csv(
-            path.join(output_dir, "file_{}.csv".format(i)), index=False, sep=';')
-        stop_row.to_csv(path.join(output_dir, "file_{}.csv".format(i)),
-                        index=False, sep=';', header=None, mode='a')
-        row_3.to_csv(path.join(output_dir, "file_{}.csv".format(i)),
-                     index=False, sep=';', header=None, mode='a')
+        start_row = pd.concat([start_row, stop_row, df], ignore_index=True).drop_duplicates()
+        start_row.to_csv(path.join(output_dir, "file_{}.csv".format(i)),
+                  index=False, sep=';')
