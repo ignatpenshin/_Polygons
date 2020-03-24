@@ -66,29 +66,29 @@ def transform_coordinates(coords, start, stop):
     return transformed
 
 
-def smooth_polygon(file, status, output_dir):
-    start_row = file[file.status.eq("start")]
-    stop_row = file[file.status.eq("stop")]
+def smooth_polygon(data, status, output_dir):
+    start_row = data[data.status.eq("start")]
+    stop_row = data[data.status.eq("stop")]
     start = start_row[["x", "y"]].values[0]
     stop = stop_row[["x", "y"]].values[0]
     xn, yn = start
     xn_j, yn_j = stop
     # data for new square
-    n_s = file[file.status.ne('+')]
+    new_data = data[data.status.ne('+')]
 
-    coords = get_polygon_coords(file)
-    new_coords = get_polygon_coords(n_s)
+    coords = get_polygon_coords(data)
+    new_coords = get_polygon_coords(new_data)
 
     # difference of squares
-    d_s = area_by_shoelace(coords)-area_by_shoelace(new_coords)
+    area_diff = area_by_shoelace(coords)-area_by_shoelace(new_coords)
 
     # def - для локальной СК, чтобы сразу считать
     basis = dist(start, stop)
     cosA = (yn_j - yn)/basis
     sinA = (xn_j - xn)/basis
-    H = 2*d_s/basis
+    H = 2*area_diff/basis
 
-    part = file.dropna()
+    part = data.dropna()
     len_part = len(part)
 
     # Точки сглаживания в локальной СК.
@@ -110,7 +110,7 @@ def smooth_polygon(file, status, output_dir):
             dict_ins.append(s)
 
     # Функция для определения пересечения высоты
-    row_3 = file[file.status.isnull()]  # !!!!!
+    row_3 = data[data.status.isnull()]  # !!!!!
     for i in range(len(dict_ins)):
         x_k = dict_x[dict_ins[i][0]]
         y_k = dict_y[dict_ins[i][0]]
