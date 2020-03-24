@@ -34,8 +34,8 @@ def get_polygon_coords(dataframe, inverse=False):
 
 
 def split_polygon(coords):
-    total_polygon_area = area_by_shoelace(coords)
-    half_area = total_polygon_area*0.5
+    total_area = area_by_shoelace(coords)
+    half_area = total_area*0.5
     triangles = [[coords[0], *coords[i:i+2]] for i in range(len(coords)-2)]
     current_area = 0
 
