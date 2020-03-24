@@ -18,7 +18,6 @@ smoothed_polygon = read_polygon_data(smooth_polygon_file)
 smooth_polygon(data=smoothed_polygon, status=500, output_dir=new_output_dir)
 final_polygon = path.join(new_output_dir, "file_0.csv")
 
-
 dataframe = read_polygon_data(final_polygon)
 coords = get_polygon_coords(dataframe, inverse=True)
 new_polygon, split_line = split_polygon(coords)
