@@ -21,8 +21,8 @@ def find_splitting_point(triangle, area):
 
 
 def read_polygon_data(filename):
-    file = read_csv(filename, sep=';', decimal=',')
-    return file.astype({"x": float, "y": float})
+    data = read_csv(filename, sep=';', decimal=',')
+    return data.astype({"x": float, "y": float})
 
 
 def get_polygon_coords(dataframe, inverse=False):
