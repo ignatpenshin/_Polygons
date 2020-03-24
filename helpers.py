@@ -1,4 +1,5 @@
 from pandas import read_csv
+from os import path
 import numpy as np
 
 
@@ -95,6 +96,17 @@ def smooth_polygon(data, status, output_dir):
     # По значению y_l_NEW можно понять, где входит H.
     coords = get_polygon_coords(part)
     dict_x, dict_y = zip(*transform_coordinates(coords, start, stop))
+    print(dict_x, dict_y)
+    dict_x = []
+    dict_y = []
+    for l in range(len_part):
+        x_l = float(part.iloc[l, 1])
+        y_l = float(part.iloc[l, 2])
+        x_l_new = (y_l - yn)*cosA + (x_l - xn)*sinA
+        y_l_new = -(y_l - yn)*sinA + (x_l - xn)*cosA
+        dict_x.append(x_l_new)
+        dict_y.append(y_l_new)
+    print(dict_x, dict_y)
 
     # Вхождение высоты в конкретный интервал
     dict_ins = []
@@ -111,18 +123,18 @@ def smooth_polygon(data, status, output_dir):
 
     # Функция для определения пересечения высоты
     row_3 = data[data.status.isnull()]  # !!!!!
-    for i in range(len(dict_ins)):
-        x_k = dict_x[dict_ins[i][0]]
-        y_k = dict_y[dict_ins[i][0]]
-        x_k_1 = dict_x[dict_ins[i][1]]
-        y_k_1 = dict_y[dict_ins[i][1]]
+    for i, point in enumerate(dict_ins):
+        x_k = dict_x[point[0]]
+        y_k = dict_y[point[0]]
+        x_k_1 = dict_x[point[1]]
+        y_k_1 = dict_y[point[1]]
         x_H = (H - y_k)*(x_k_1 - x_k)/(y_k_1 - y_k) + x_k
         y_H_main = x_H*cosA - H*sinA + yn
         x_H_main = x_H*sinA + H*cosA + xn
         start_row.loc[1] = [status + i, x_H_main, y_H_main, 'new']
-        start_row[['number', 'x', 'y', 'status']].to_csv(
-            output_dir + '/file_' + str(i) + '.csv', index=False, sep=';')
-        stop_row.to_csv(output_dir + '/file_' + str(i) + '.csv',
+        start_row.to_csv(
+            path.join(output_dir, "file_{}.csv".format(i)), index=False, sep=';')
+        stop_row.to_csv(path.join(output_dir, "file_{}.csv".format(i)),
                         index=False, sep=';', header=None, mode='a')
-        row_3.to_csv(output_dir + '/file_' + str(i) + '.csv',
+        row_3.to_csv(path.join(output_dir, "file_{}.csv".format(i)),
                      index=False, sep=';', header=None, mode='a')
