@@ -96,17 +96,15 @@ def smooth_polygon(data, status, output_dir):
     # По значению y_l_NEW можно понять, где входит H.
     coords = get_polygon_coords(part)
     dict_x, dict_y = zip(*transform_coordinates(coords, start, stop))
-    print(dict_x, dict_y)
     dict_x = []
     dict_y = []
     for l in range(len_part):
-        x_l = float(part.iloc[l, 1])
-        y_l = float(part.iloc[l, 2])
+        x_l = part.iloc[l, 1]
+        y_l = part.iloc[l, 2]
         x_l_new = (y_l - yn)*cosA + (x_l - xn)*sinA
         y_l_new = -(y_l - yn)*sinA + (x_l - xn)*cosA
         dict_x.append(x_l_new)
         dict_y.append(y_l_new)
-    print(dict_x, dict_y)
 
     # Вхождение высоты в конкретный интервал
     dict_ins = []
@@ -120,9 +118,11 @@ def smooth_polygon(data, status, output_dir):
 
             s = [k, k+1]
             dict_ins.append(s)
-
+    
     # Функция для определения пересечения высоты
-    df = data[data.status.isnull()]  # !!!!!
+    new_data = data[data.status.isnull()]
+    start_row = start_row.values[0].tolist()
+    stop_row = stop_row.values[0].tolist()
     for i, point in enumerate(dict_ins):
         x_k = dict_x[point[0]]
         y_k = dict_y[point[0]]
@@ -131,7 +131,8 @@ def smooth_polygon(data, status, output_dir):
         x_H = (H - y_k)*(x_k_1 - x_k)/(y_k_1 - y_k) + x_k
         y_H_main = x_H*cosA - H*sinA + yn
         x_H_main = x_H*sinA + H*cosA + xn
-        start_row.loc[1] = [status + i, x_H_main, y_H_main, 'new']
-        start_row = pd.concat([start_row, stop_row, df], ignore_index=True).drop_duplicates()
-        start_row.to_csv(path.join(output_dir, "file_{}.csv".format(i)),
+        new_row = [status + i, x_H_main, y_H_main, 'new']
+        df_data = [start_row, new_row, stop_row]
+        df = pd.DataFrame(df_data, columns = data.columns).append(new_data)
+        df.to_csv(path.join(output_dir, "file_{}.csv".format(i)),
                   index=False, sep=';')
