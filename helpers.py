@@ -58,11 +58,11 @@ def split_polygon(coords):
 
 def transform_coordinates(coords, start, stop):
     basis = dist(start, stop)
-    xn, yn = start
     cos, sin = np.divide(np.subtract(stop, start), basis)
+    transform_matrix = np.array([[cos, sin], [-sin, cos]])
 
-    transformed = [[
-        (x - xn)*cos + (y - yn)*sin, -(x - xn)*sin + (y - yn)*cos] for x, y in coords]
+    transformed = [np.matmul(transform_matrix, np.subtract(
+        point, start)).tolist() for point in coords]
 
     return transformed
 
