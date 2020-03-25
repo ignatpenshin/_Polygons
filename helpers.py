@@ -38,22 +38,21 @@ def split_polygon(coords):
     total_area = area_by_shoelace(coords)
     half_area = total_area*0.5
     triangles = [[coords[0], *coords[i:i+2]] for i in range(len(coords)-2)]
-    current_area = 0
-
     triangle_areas = {i: area_by_shoelace(
         triangle) for i, triangle in enumerate(triangles)}
+    current_area = 0
+    index = -1
 
-    for index, triangle in enumerate(triangles):
+    while(current_area < half_area):
+        index += 1
         current_area += triangle_areas.get(index)
-        if current_area >= half_area:
-            break
 
     area = triangle_areas.get(index) - (current_area-half_area)
     splitting_point = find_splitting_point(
-        triangle, area)
+        triangles[index], area)
     split_line = [coords[0], splitting_point]
-    coords.insert(index+1, splitting_point)
-    return [coords, split_line]
+    new_coords = [*coords[:index+1], splitting_point, *coords[index+1:]]
+    return [new_coords, split_line]
 
 
 def transform_coordinates(coords, start, stop):
@@ -63,7 +62,6 @@ def transform_coordinates(coords, start, stop):
 
     transformed = [np.matmul(transform_matrix, np.subtract(
         point, start)).tolist() for point in coords]
-
     return transformed
 
 
@@ -118,7 +116,7 @@ def smooth_polygon(data, status, output_dir):
 
             s = [k, k+1]
             dict_ins.append(s)
-    
+
     # Функция для определения пересечения высоты
     new_data = data[data.status.isnull()]
     start_row = start_row.values[0].tolist()
@@ -133,6 +131,6 @@ def smooth_polygon(data, status, output_dir):
         x_H_main = x_H*sinA + H*cosA + xn
         new_row = [status + i, x_H_main, y_H_main, 'new']
         df_data = [start_row, new_row, stop_row]
-        df = pd.DataFrame(df_data, columns = data.columns).append(new_data)
+        df = pd.DataFrame(df_data, columns=data.columns).append(new_data)
         df.to_csv(path.join(output_dir, "file_{}.csv".format(i)),
                   index=False, sep=';')
