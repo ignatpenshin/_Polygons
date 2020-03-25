@@ -66,8 +66,19 @@ new_polygon_bottom_1 = new_polygon_bottom[:new_polygon_bottom.index(
     split_line_bottom[1])+1]
 new_polygon_bottom_2 = [*new_polygon_bottom[new_polygon_bottom.index(
     split_line_bottom[1]):], new_polygon_bottom[0]]
-# print(area_by_shoelace(new_polygon_top_1), area_by_shoelace(new_polygon_top_2),
-#       area_by_shoelace(new_polygon_bottom_1), area_by_shoelace(new_polygon_bottom_2))
+
+road_top = [[x_3, h], transformed_coords[stop_index],
+            transformed_coords[start_index], [x_2, h]]
+road_bottom = [transformed_coords[stop_index], [x_4, h-ROAD_WIDTH],
+               [x_5, h-ROAD_WIDTH], transformed_coords[start_index]]
+
+result_polygons = [new_polygon_top_1, new_polygon_top_2,
+                   new_polygon_bottom_1, new_polygon_bottom_1, road_top, road_bottom]
+
+result_area = sum(
+    map(lambda polygon: area_by_shoelace(polygon), result_polygons))
+# print("initial total area: {}\nresult total area: {}".format(area_by_shoelace(coords), result_area)
+#       )
 
 x_6 = split_line_top[1]
 x_7 = split_line_bottom[1]
@@ -95,15 +106,9 @@ ax[1].axis("equal")
 split_line = [transformed_coords[start_index], transformed_coords[stop_index]]
 ax[1].plot(*zip(*split_line), "--")
 ax[1].scatter(x, y, c="blue")
-test = [[x_3, h], transformed_coords[stop_index],
-        transformed_coords[start_index], [x_2, h]]
-# print(area_by_shoelace(test))
 polygon = Polygon(new_polygon_top_1)
 p = PatchCollection([polygon], fc="none", ec="green")
 ax[1].add_collection(p)
-test = [transformed_coords[stop_index], [x_4, h-ROAD_WIDTH],
-        [x_5, h-ROAD_WIDTH], transformed_coords[start_index]]
-# print(area_by_shoelace(test))
 polygon = Polygon(new_polygon_top_2)
 p = PatchCollection([polygon], fc="none", ec="red")
 ax[1].add_collection(p)
