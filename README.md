@@ -1,2 +1,2 @@
-# polygons
+# polygon smoothing and road building
 
