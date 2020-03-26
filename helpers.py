@@ -13,6 +13,14 @@ def dist(point1, point2):
     return np.linalg.norm(np.subtract(point2, point1))
 
 
+def refresh(a, b):
+    full = b//len(a) 
+    part = b%len(a) 
+    a.extend(full*a[0:b] + a[0:part]) 
+    del a[0:b]
+    return a
+
+
 def find_splitting_point(triangle, area):
     p1, p2, p3 = triangle
     k = p2[0]*(p1[1]-p3[1]) + p1[0]*(p3[1]-p2[1]) + p3[0]*(p2[1]-p1[1])
@@ -34,9 +42,11 @@ def get_polygon_coords(dataframe, inverse=False):
     return coords
 
 
-def split_polygon(coords):
+def split_polygon(coords, point_number):
+    start_point = coords[0]
     total_area = area_by_shoelace(coords)
     half_area = total_area*0.5
+    coords = refresh(coords, point_number)
     triangles = [[coords[0], *coords[i:i+2]] for i in range(len(coords)-2)]
     triangle_areas = {i: area_by_shoelace(
         triangle) for i, triangle in enumerate(triangles)}
@@ -123,3 +133,47 @@ def smooth_polygon(data, status, output_dir):
         df = pd.DataFrame(df_data, columns=data.columns).append(new_data)
         df.to_csv(path.join(output_dir, "file_{}.csv".format(i)),
                   index=False, sep=';')
+
+def road_project(data, ROAD_WIDTH, start_point):
+    dataframe = read_polygon_data(data)
+    coords = get_polygon_coords(dataframe, inverse=True)
+    new_polygon, split_line = split_polygon(coords, start_point)
+    start, stop = split_line
+    t_coords = transform_coordinates(new_polygon, start, stop)
+    start_index = new_polygon.index(start)
+    stop_index = new_polygon.index(stop)
+    x0, y0 = t_coords[start_index]
+
+    x_1, y_1 = t_coords[stop_index]
+    x_a, y_a = t_coords[start_index-1]
+    x_b, y_b = t_coords[start_index+1]
+    x_c, y_c = t_coords[stop_index-1]
+    x_d, y_d = t_coords[stop_index+1]
+
+    h1 = (((-2*x_1*y_a*y_b*y_c+2*x_1*y_a*y_b*y_d-24*x_a*y_b*y_c+24*x_a*y_b*y_d+2*x_c*y_a*y_b*y_d+24*x_c*y_a*y_b-2*x_d*y_a*y_b*y_c-24*x_d*y_a*y_b)**2
+      - 4*(ROAD_WIDTH*x_1*y_a*y_b*y_c-ROAD_WIDTH*x_1*y_a*y_b*y_d+144*x_a*y_b*y_c-144*x_a*y_b*y_d-ROAD_WIDTH*x_c*y_a*y_b*y_d-144*x_c*y_a*y_b+ROAD_WIDTH*x_d*y_a*y_b*y_c
+           + 144*x_d*y_a*y_b)*(x_a * y_b*y_c-x_a*y_b*y_d+x_b*y_a*y_c-x_b*y_a*y_d-2*x_c*y_a*y_b+2*x_d*y_a*y_b))**0.5
+     + 2*x_1*y_a*y_b*y_c-2*x_1*y_a*y_b*y_d+24*x_a*y_b*y_c-24*x_a*y_b*y_d-2*x_c*y_a*y_b*y_d-24*x_c*y_a*y_b+2*x_d*y_a*y_b*y_c+24*x_d*y_a*y_b)/(2*(x_a*y_b*y_c
+                                                                                                                                                - x_a*y_b*y_d+x_b*y_a*y_c-x_b*y_a*y_d-2*x_c*y_a*y_b+2*x_d*y_a*y_b))
+    h2 = (-((-2*x_1*y_a*y_b*y_c+2*x_1*y_a*y_b*y_d-24*x_a*y_b*y_c+24*x_a*y_b*y_d+2*x_c*y_a*y_b*y_d+24*x_c*y_a*y_b-2*x_d*y_a*y_b*y_c-24*x_d*y_a*y_b)**2
+        - 4*(ROAD_WIDTH*x_1*y_a*y_b*y_c-ROAD_WIDTH*x_1*y_a*y_b*y_d+144*x_a*y_b*y_c-144*x_a*y_b*y_d-ROAD_WIDTH*x_c*y_a*y_b*y_d-144*x_c*y_a*y_b+ROAD_WIDTH*x_d*y_a*y_b*y_c
+             + 144*x_d*y_a*y_b)*(x_a * y_b*y_c-x_a*y_b*y_d+x_b*y_a*y_c-x_b*y_a*y_d-2*x_c*y_a*y_b+2*x_d*y_a*y_b))**0.5
+      + 2*x_1*y_a*y_b*y_c-2*x_1*y_a*y_b*y_d+24*x_a*y_b*y_c-24*x_a*y_b*y_d-2*x_c*y_a*y_b*y_d-24*x_c*y_a*y_b+2*x_d*y_a*y_b*y_c+24*x_d*y_a*y_b)/(2*(x_a*y_b*y_c
+                                                                                                                                                 - x_a*y_b*y_d+x_b*y_a*y_c-x_b*y_a*y_d-2*x_c*y_a*y_b+2*x_d*y_a*y_b))
+    if h1>0 and h1<ROAD_WIDTH:
+        h = h1 
+    elif h2>0 and h2<ROAD_WIDTH:
+        h = h2   
+    
+    x_2 = h*x_b/y_b
+    x_3 = (h-y_d)*(x_c-x_d)/(y_c-y_d)+x_d
+    x_4 = (h-ROAD_WIDTH-y_d)*(x_c-x_d)/(y_c-y_d)+x_d
+    x_5 = (h-ROAD_WIDTH)*x_a/y_a    
+
+    full_coords = [t_coords[start_index], [x_2, h], *t_coords[start_index+1:stop_index],
+                                [x_3, h], t_coords[stop_index], [x_4, h-ROAD_WIDTH], *t_coords[stop_index+1:len(t_coords)], 
+                                                            [x_5, h-ROAD_WIDTH]]
+    full_coords_main = transform_coordinates(full_coords, start, stop, versa = True)
+    return full_coords_main
+
+
