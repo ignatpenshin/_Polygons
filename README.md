@@ -1,2 +1,2 @@
-# polygon smoothing and road building
+# polygon smoothing and road building with algebra
 
