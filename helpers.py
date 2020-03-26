@@ -55,23 +55,25 @@ def split_polygon(coords):
     return [new_coords, split_line]
 
 
-def transform_coordinates(coords, start, stop):
+def transform_coordinates(coords, start, stop, versa=False):
     basis = dist(start, stop)
     cos, sin = np.divide(np.subtract(stop, start), basis)
-    transform_matrix = np.array([[cos, sin], [-sin, cos]])
+    if versa == False:
+        transform_matrix = np.array([[cos, sin], [-sin, cos]])
+        transformed = [np.matmul(transform_matrix, np.subtract(
+            point, start)).tolist() for point in coords]
+        return transformed
+    elif versa == True:
+        transformed = [(point[0]*sin + point[1]*cos + start[0], 
+                point[0]*cos - point[1]*sin + start[1]) for point in coords]
+        return transformed        
 
-    transformed = [np.matmul(transform_matrix, np.subtract(
-        point, start)).tolist() for point in coords]
-    return transformed
-
-
+      
 def smooth_polygon(data, status, output_dir):
     start_row = data[data.status.eq("start")]
     stop_row = data[data.status.eq("stop")]
     start = start_row[["x", "y"]].values[0]
     stop = stop_row[["x", "y"]].values[0]
-    xn, yn = start
-    xn_j, yn_j = stop
     # data for new square
     new_data = data[data.status.ne('+')]
 
@@ -83,8 +85,6 @@ def smooth_polygon(data, status, output_dir):
 
     # def - для локальной СК, чтобы сразу считать
     basis = dist(start, stop)
-    cosA = (yn_j - yn)/basis
-    sinA = (xn_j - xn)/basis
     H = 2*area_diff/basis
 
     part = data.dropna()
@@ -94,15 +94,6 @@ def smooth_polygon(data, status, output_dir):
     # По значению y_l_NEW можно понять, где входит H.
     coords = get_polygon_coords(part)
     dict_x, dict_y = zip(*transform_coordinates(coords, start, stop))
-    dict_x = []
-    dict_y = []
-    for l in range(len_part):
-        x_l = part.iloc[l, 1]
-        y_l = part.iloc[l, 2]
-        x_l_new = (y_l - yn)*cosA + (x_l - xn)*sinA
-        y_l_new = -(y_l - yn)*sinA + (x_l - xn)*cosA
-        dict_x.append(x_l_new)
-        dict_y.append(y_l_new)
 
     # Вхождение высоты в конкретный интервал
     dict_ins = []
@@ -113,7 +104,6 @@ def smooth_polygon(data, status, output_dir):
             dict_ins.append(s)
         elif (H > 0 and ((H >= dict_y[k] and H <= dict_y[k+1])
                          or (H <= dict_y[k] and H >= dict_y[k+1]))):
-
             s = [k, k+1]
             dict_ins.append(s)
 
@@ -127,9 +117,8 @@ def smooth_polygon(data, status, output_dir):
         x_k_1 = dict_x[point[1]]
         y_k_1 = dict_y[point[1]]
         x_H = (H - y_k)*(x_k_1 - x_k)/(y_k_1 - y_k) + x_k
-        y_H_main = x_H*cosA - H*sinA + yn
-        x_H_main = x_H*sinA + H*cosA + xn
-        new_row = [status + i, x_H_main, y_H_main, 'new']
+        x_main, y_main = transform_coordinates([x_H, H], start, stop, versa = True)
+        new_row = [status + i, x_main, y_main, 'new']
         df_data = [start_row, new_row, stop_row]
         df = pd.DataFrame(df_data, columns=data.columns).append(new_data)
         df.to_csv(path.join(output_dir, "file_{}.csv".format(i)),

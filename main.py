@@ -15,6 +15,8 @@ new_output_dir = output_dir+"_2"
 smooth_polygon_file = path.join(new_output_dir, "file_31.csv")
 smoothed_polygon = read_polygon_data(smooth_polygon_file)
 
+
+
 smooth_polygon(data=smoothed_polygon, status=500, output_dir=new_output_dir)
 final_polygon = path.join(new_output_dir, "file_0.csv")
 
