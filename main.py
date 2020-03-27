@@ -21,11 +21,14 @@ smoothed_polygon = read_polygon_data(smooth_polygon_file)
 smooth_polygon(data=smoothed_polygon, status=500, output_dir=new_output_dir)
 final_polygon = path.join(new_output_dir, "file_0.csv")
 
-print(road_project(final_polygon, 12, 0))
+road = road_project(final_polygon, 12,0)
+
+
+print(pd.DataFrame({'x':r[0], 'y':r[1]} for r in road))
 
 dataframe = read_polygon_data(final_polygon)
 coords = get_polygon_coords(dataframe, inverse=True)
-new_polygon, split_line = split_polygon(coords, 6)
+new_polygon, split_line = split_polygon(coords, 1)
 start, stop = split_line
 transformed_coords = transform_coordinates(new_polygon, start, stop)
 start_index = new_polygon.index(start)

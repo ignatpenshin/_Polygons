@@ -65,7 +65,7 @@ def split_polygon(coords, point_number):
     return [new_coords, split_line]
 
 
-def transform_coordinates(coords, start, stop, versa=False):
+def transform_coordinates(coords, start, stop, versa=False, inverse=False):
     basis = dist(start, stop)
     cos, sin = np.divide(np.subtract(stop, start), basis)
     if versa == False:
@@ -73,11 +73,15 @@ def transform_coordinates(coords, start, stop, versa=False):
         transformed = [np.matmul(transform_matrix, np.subtract(
             point, start)).tolist() for point in coords]
         return transformed
-    elif versa == True:
+    elif versa == True and inverse == False:
         transformed = [(point[0]*sin + point[1]*cos + start[0], 
                 point[0]*cos - point[1]*sin + start[1]) for point in coords]
         return transformed        
-
+    elif versa == True and inverse == True:
+        cos, sin = sin, cos
+        transformed = [(point[1]*sin + point[0]*cos + start[1], 
+                point[1]*cos - point[0]*sin + start[0]) for point in coords]
+        return transformed  
       
 def smooth_polygon(data, status, output_dir):
     start_row = data[data.status.eq("start")]
@@ -173,7 +177,7 @@ def road_project(data, ROAD_WIDTH, start_point):
     full_coords = [t_coords[start_index], [x_2, h], *t_coords[start_index+1:stop_index],
                                 [x_3, h], t_coords[stop_index], [x_4, h-ROAD_WIDTH], *t_coords[stop_index+1:len(t_coords)], 
                                                             [x_5, h-ROAD_WIDTH]]
-    full_coords_main = transform_coordinates(full_coords, start, stop, versa = True)
+    full_coords_main = transform_coordinates(full_coords, start, stop, versa = True, inverse = True)
     return full_coords_main
 
 
