@@ -28,7 +28,7 @@ print(pd.DataFrame({'x':r[0], 'y':r[1]} for r in road))
 
 dataframe = read_polygon_data(final_polygon)
 coords = get_polygon_coords(dataframe, inverse=True)
-new_polygon, split_line = split_polygon(coords, 1)
+new_polygon, split_line = split_polygon(coords, 0)
 start, stop = split_line
 transformed_coords = transform_coordinates(new_polygon, start, stop)
 start_index = new_polygon.index(start)

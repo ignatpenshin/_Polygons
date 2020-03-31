@@ -78,7 +78,7 @@ def transform_coordinates(coords, start, stop, versa=False, inverse=False):
                 point[0]*cos - point[1]*sin + start[1]) for point in coords]
         return transformed        
     elif versa == True and inverse == True:
-        cos, sin = sin, cos
+        cos, sin = -sin, -cos
         transformed = [(point[1]*sin + point[0]*cos + start[1], 
                 point[1]*cos - point[0]*sin + start[0]) for point in coords]
         return transformed  
